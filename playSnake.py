@@ -5,7 +5,7 @@ env = Snake("{}")
 obs, __ = env.reset()
 total_reward = 0
 while True:
-    cv2.imshow("IMG", obs)
+    cv2.imshow("Snake Game", obs)
     key = cv2.waitKey(100)
     action = 4
     if(key & 0xFF == ord('d')):

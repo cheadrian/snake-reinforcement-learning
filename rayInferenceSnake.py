@@ -36,7 +36,7 @@ for i in range(num_episodes):
     while not done:
       action = predictor.predict(np.array([obs]))
       obs, r, done, _, _ = env.step(action[0])
-      cv2.imshow("Snake", obs)
+      cv2.imshow("Snake Game RLlib", obs)
       cv2.waitKey(1)
       reward += r
     print(reward)
