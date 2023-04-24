@@ -6,12 +6,12 @@ import cv2
 import os
 
 # You can use canvas_type_*.png from 1 to 4
-canvas_path = "snake_assets/canvas_type_1.png"
-bug1_path = "snake_assets/bug_1.png"
-bug2_path = "snake_assets/bug_2.png"
-bug3_path = "snake_assets/bug_3.png"
-bug4_path = "snake_assets/bug_4.png"
-bug5_path = "snake_assets/bug_boss.png"
+canvas_path = os.path.abspath("snake_assets/canvas_type_1.png")
+bug1_path = os.path.abspath("snake_assets/bug_1.png")
+bug2_path = os.path.abspath("snake_assets/bug_2.png")
+bug3_path = os.path.abspath("snake_assets/bug_3.png")
+bug4_path = os.path.abspath("snake_assets/bug_4.png")
+bug5_path = os.path.abspath("snake_assets/bug_boss.png")
 
 class Snake(Env):
     def __init__(self, env_config):
@@ -59,8 +59,10 @@ class Snake(Env):
         self.box_size = 20 #20x20 
         self.snake_pos_h = 10 * self.box_size
         self.border = 1
+
+        self.grid_x, self.grid_y = self.frame_size_x//self.box_size, self.frame_size_y//self.box_size
+        self.food_pos = [random.randrange(1, self.grid_x) * self.box_size, random.randrange(1, self.grid_y) * self.box_size]
         
-        self.food_pos = [random.randrange(1, (self.frame_size_x//self.box_size)) * self.box_size, random.randrange(1, (self.frame_size_y//self.box_size)) * self.box_size]
         self.food_spawn = True
         self.random_bug = self.bugs_arr[random.randrange(0,len(self.bugs_arr))]
         
@@ -69,7 +71,7 @@ class Snake(Env):
         score_font = pygame.font.Font(pygame.font.get_default_font(), size)
         score_surface = score_font.render(str(self.score), True, color)
         score_rect = score_surface.get_rect()
-        score_rect.midtop = (self.frame_size_x/self.box_size-8, 10)
+        score_rect.midtop = (self.grid_x - 8, 10)
         self.game_window.blit(score_surface, score_rect)
     
     def do_action(self, change_to):
@@ -101,14 +103,15 @@ class Snake(Env):
             self.food_spawn = False
         else:
             self.snake_body.pop()
-    
+
         # Spawning food on the screen
         if not self.food_spawn:
             self.random_bug = self.bugs_arr[random.randrange(0,len(self.bugs_arr))]
-            self.food_pos = [random.randrange(1, (self.frame_size_x//self.box_size)) * self.box_size, random.randrange(1, (self.frame_size_y//self.box_size)) * self.box_size]
-            for block in self.snake_body[0:]:
-                if self.food_pos[0] == block[0] and self.food_pos[1] == block[1]:
-                    self.food_pos = [random.randrange(1, (self.frame_size_x//self.box_size)) * self.box_size, random.randrange(1, (self.frame_size_y//self.box_size)) * self.box_size]
+            self.food_pos = [random.randrange(1, self.grid_x) * self.box_size, random.randrange(1, self.grid_y) * self.box_size]
+            while self.food_pos in self.snake_body:
+                f_pos_x = random.randrange(1, self.grid_x)
+                f_pos_y = random.randrange(1, self.grid_y)
+                self.food_pos = [f_pos_x * self.box_size,f_pos_y  * self.box_size]
     
         self.food_spawn = True
         
@@ -159,25 +162,27 @@ class Snake(Env):
         return obs, {}
                    
     def step(self, action):
-        #reward = 0 
-
         assert self.action_space.contains(action), "Invalid Action"
-        canvas, done = self.do_action(action)
-        if(done):
-            self.reset()
-        score = self.score
+        canvas, terminated = self.do_action(action)
+        
+        # Reward every step with X
+        reward = 0.0001
 
-        reward = 1
-
-        if(score != self.last_score):
-            reward = 15
-            self.last_score = score
+        if(terminated):
+            # If Snake hit the wall, decrease reward
+            reward -= 1.0
+            
+        if(self.score > self.last_score):
+            # If score increase, add reward
+            reward += 1.0
+            self.last_score = self.score
         
         
         obs = cv2.resize(canvas, (self.observation_shape[0], self.observation_shape[1]))
         # Don't use premature episode ending, yet: https://gymnasium.farama.org/api/env/#gymnasium.Env.step
         truncated = False
-        return obs, reward, done, truncated, {"score": self.score}
-        
+        # Note, done is now "terminated"
+        return obs, reward, terminated, truncated, {"score": self.score}
+    
     def close(self):
         cv2.destroyAllWindows()

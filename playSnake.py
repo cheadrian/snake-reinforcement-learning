@@ -1,5 +1,13 @@
-from SnakeEnv import Snake
 import cv2
+
+print("1. Start non-asset, simple variant.")
+print("2. Start the asset variant.")
+simple = input()
+if simple == "1":
+    from SimpleSnakeEnv import Snake
+else:
+    from SnakeEnv import Snake
+
 
 env = Snake("{}")
 obs, __ = env.reset()
