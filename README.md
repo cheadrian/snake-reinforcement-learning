@@ -1,7 +1,7 @@
 # Snake game reinforcement learning
 Example of a snake game ML with Ray RLlib, PyGame, and Gymnasium.
 
-[Check out on this Medium article](https://medium.com/@che-adrian/building-the-perfect-a-i-game-player-using-ray-pytorch-and-gymnasium-cdb1d5624844)
+[Check out on this Medium article](https://faun.pub/building-the-perfect-a-i-game-player-using-ray-rllib-pytorch-and-gymnasium-cdb1d5624844?sk=93e8b3523ed5f77c29df3c98c1dc4077)
 
 ## Training
 To train the network, check out the Ray_RLlib_PyGame_Snake_Gym_Training.ipynb notebook.
